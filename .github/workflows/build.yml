@@ -34,6 +34,13 @@ jobs:
           npx cap init "$APP_NAME" "$APP_ID" --web-dir=www
           npx cap add android
 
+      - name: Generate app icon and splash
+        run: |
+          mkdir -p assets
+          cp icon-only.png icon-foreground.png icon-background.png splash.png assets/
+          cp splash.png assets/splash-dark.png
+          npx @capacitor/assets@3 generate --android
+
       - name: Add AdMob App ID and sync
         run: |
           sed -i "s#</application>#<meta-data android:name=\"com.google.android.gms.ads.APPLICATION_ID\" android:value=\"$ADMOB_APP_ID\"/></application>#" android/app/src/main/AndroidManifest.xml
