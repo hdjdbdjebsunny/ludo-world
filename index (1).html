@@ -21,7 +21,7 @@ button{font-family:inherit;cursor:pointer;border:0;outline:0;color:inherit;backg
 #app{
   position:relative;
   max-width:560px;
-  min-height:100vh;
+  min-height:calc(100vh - var(--adh,0px));
   margin:0 auto;
   overflow:hidden;
   background:
@@ -30,7 +30,7 @@ button{font-family:inherit;cursor:pointer;border:0;outline:0;color:inherit;backg
     linear-gradient(180deg,#0d3f9a 0%,#082a70 45%,#041a4d 100%);
 }
 
-.screen{display:none;min-height:100vh;padding:12px 12px 18px;flex-direction:column}
+.screen{display:none;min-height:calc(100vh - var(--adh,0px));padding:calc(env(safe-area-inset-top,0px) + 38px) 12px calc(env(safe-area-inset-bottom,0px) + 30px);flex-direction:column}
 .screen.show{display:flex;animation:fadeIn .35s ease}
 @keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
 
@@ -114,7 +114,7 @@ button{font-family:inherit;cursor:pointer;border:0;outline:0;color:inherit;backg
 
 /* ---------- Bottom sheet ---------- */
 .overlay{
-  position:fixed;left:0;top:0;right:0;bottom:0;z-index:50;
+  position:fixed;left:0;top:0;right:0;bottom:var(--adh,0px);z-index:50;
   display:none;align-items:flex-end;justify-content:center;
   background:rgba(0,6,24,.72);
 }
@@ -126,7 +126,7 @@ button{font-family:inherit;cursor:pointer;border:0;outline:0;color:inherit;backg
   border-top:3px solid #ffc83a;border-radius:24px 24px 0 0;
   padding:16px 16px 22px;
   animation:slideUp .3s ease;
-  max-height:94vh;overflow:auto;
+  max-height:calc(94vh - var(--adh,0px));overflow:auto;
 }
 @keyframes slideUp{from{transform:translateY(100%)}to{transform:none}}
 .sheetIn h3,.box h3{
@@ -1163,12 +1163,19 @@ requestAnimationFrame(frame);
   var cap=window.Capacitor;
   var A=cap&&cap.Plugins&&cap.Plugins.AdMob;
   if(!A||!cap.isNativePlatform||!cap.isNativePlatform()){return;}
+  function setAd(h){
+    h=Math.ceil(h||0);
+    document.documentElement.style.setProperty('--adh',h+'px');
+    document.body.style.paddingBottom=h+'px';
+    try{window.dispatchEvent(new Event('resize'));}catch(e){}
+  }
+  try{A.addListener('bannerAdSizeChanged',function(i){if(i&&i.height){setAd(i.height);}});}catch(e){}
   function prep(){try{A.prepareInterstitial({adId:AD.inter,isTesting:AD.testing});}catch(e){}}
   async function init(){
     try{
       await A.initialize({initializeForTesting:AD.testing});
       await A.showBanner({adId:AD.banner,adSize:'ADAPTIVE_BANNER',position:'BOTTOM_CENTER',margin:0,isTesting:AD.testing});
-      document.body.style.paddingBottom='64px';
+      setAd(60);
       prep();
     }catch(e){}
   }
